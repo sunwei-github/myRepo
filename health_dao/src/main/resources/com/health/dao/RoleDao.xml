@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.health.dao.RoleDao">
+    <select id="findRoleByUserId" parameterType="integer" resultType="Role">
+        SELECT * FROM t_role WHERE id IN(SELECT role_id FROM t_user_role WHERE user_id = #{user_id})
+    </select>
+
+    <!--根据用户名查询角色集合-->
+    <select id="findRoleByUsername" parameterType="string" resultType="Role">
+        SELECT * FROM t_role WHERE id IN(SELECT role_id FROM t_user_role WHERE user_id=(SELECT id FROM t_user WHERE username=#{username}))
+    </select>
+
+    <!--根据用户名查询角色id集合-->
+    <select id="findRoleIdByUsername" parameterType="string" resultType="integer">
+        SELECT id FROM t_role WHERE id IN(SELECT role_id FROM t_user_role WHERE user_id=(SELECT id FROM t_user WHERE username=#{username}))
+    </select>
+
+    <!--角色分页：查询要分页的数据-->
+    <select id="selectByCondition" parameterType="String" resultType="com.health.pojo.Role">
+        SELECT * FROM  t_role
+        <if test="value != null and value.length > 0">
+            WHERE name=#{value}
+        </if>
+    </select>
+
+    <!--新增角色-->
+    <insert id="add" parameterType="com.health.pojo.Role">
+        <selectKey order="AFTER" keyProperty="id" resultType="Integer">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO t_role(name,keyword,description) VALUES(#{name},#{keyword},#{description})
+    </insert>
+
+    <!--通过中间表关联角色和权限-->
+    <insert id="setRoleAndPermission" parameterType="Map">
+        INSERT INTO t_role_permission(role_id,permission_id) VALUES (#{roleId},#{permissionId})
+    </insert>
+
+    <!--通过中间表关联角色和菜单-->
+    <insert id="setRoleAndMenu" parameterType="Map">
+        INSERT INTO t_role_menu(role_id,menu_id) VALUES (#{roleId},#{menuId})
+    </insert>
+
+    <!--查询角色所关联的权限-->
+    <select id="findPermissionIdByRoleId" parameterType="Integer" resultType="Integer">
+        select permission_id from t_role_permission where role_id=#{roleId}
+    </select>
+
+    <!--查询角色所关联的菜单-->
+    <select id="findMenuIdByRoleId" parameterType="Integer" resultType="Integer">
+        select menu_id from t_role_menu where role_id=#{roleId}
+    </select>
+
+    <!--根据角色id查询权限数据-->
+    <select id="findById" parameterType="Integer" resultType="com.health.pojo.Role">
+        select * from t_role where id=#{roleId}
+    </select>
+
+    <!--检查组编辑-->
+    <update id="editRole" parameterType="com.health.pojo.Role">
+        update t_role
+        <set>
+            <if test="name != null ">
+                name = #{name},
+            </if>
+            <if test="keyword != null ">
+                keyword = #{keyword},
+            </if>
+            <if test="description != null ">
+                description = #{description},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+
+    <!--删除之前角色和权限的关联-->
+    <delete id="deleteT_role_permissionByRoleId" parameterType="Integer">
+        delete from  t_role_permission where role_id=#{id}
+    </delete>
+
+    <!--删除之前角色和菜单的关联-->
+    <delete id="deleteT_role_menuByRoleId" parameterType="Integer">
+        delete from  t_role_menu where role_id=#{id}
+    </delete>
+
+    <!--查询用户和角色关联表判断用户中是否有角色-->
+    <select id="findUserCountByRoleId" parameterType="Integer" resultType="Integer">
+        select count(*) from t_user_role where role_id=#{roleId}
+    </select>
+
+    <!--删除检查组表-->
+    <delete id="deleteRoleById" parameterType="Integer">
+        delete from  t_role where id=#{roleId}
+    </delete>
+
+    <!--查询所有角色-->
+    <select id="findAll" resultType="com.health.pojo.Role">
+        select * from t_role
+    </select>
+</mapper>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.health.dao.OrderDao">
+    <!--根据条件查询预约订单-->
+    <select id="findByCondition" parameterType="Order" resultType="Order">
+        SELECT * FROM t_order WHERE member_id=#{memberId} AND orderDate=#{orderDate} AND setmeal_id=#{setmealId}
+    </select>
+
+    <!--添加预约订单-->
+    <insert id="add" parameterType="Order">
+        <selectKey resultType="java.lang.Integer" order="AFTER" keyProperty="id">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO t_order(member_id,orderDate,orderType,orderStatus,setmeal_id)
+        VALUES (#{memberId},#{orderDate},#{orderType},#{orderStatus},#{setmealId})
+    </insert>
+
+    <!--根据预约id查询预约信息，包括体检人信息、套餐信息-->
+    <select id="findById" parameterType="int" resultType="map">
+        select m.name member ,s.name setmeal,o.orderDate orderDate,o.orderType orderType
+        from
+        t_order o,
+        t_member m,
+        t_setmeal s
+        where o.member_id=m.id and o.setmeal_id=s.id and o.id=#{id}
+    </select>
+
+    <!--查询当日预约数-->
+    <select id="findOrderOfToday" parameterType="string" resultType="integer">
+        SELECT COUNT(1) FROM  t_order WHERE orderDate=#{orderDate}
+    </select>
+
+    <!--查询当日到诊数-->
+    <select id="findVisitOfToday" parameterType="string" resultType="integer">
+        SELECT COUNT(1) FROM t_order WHERE orderDate=#{orderDate} AND orderStatus="已到诊"
+    </select>
+
+    <!--查询指定日期之内的预约数-->
+    <sql id="findOrderOfDate">
+        SELECT COUNT(1) FROM t_order WHERE orderDate>=#{orderDate}
+    </sql>
+    <!--查询指定日期之内的到诊数-->
+    <sql id="findVisitOfDate">
+        SELECT COUNT(1) FROM t_order WHERE orderDate>=#{orderDate} AND orderStatus="已到诊"
+    </sql>
+
+    <!--查询本周预约数-->
+    <select id="findOrderOfThisWeek" parameterType="string" resultType="integer">
+        <include refid="findOrderOfDate"/>
+    </select>
+
+    <!--查询本周到诊数-->
+    <select id="findVisitOfThisWeek" parameterType="string" resultType="integer">
+        <include refid="findVisitOfDate"/>
+    </select>
+
+    <!--查询本月预约数-->
+    <select id="findOrderOfThisMonth" parameterType="string" resultType="integer">
+        <include refid="findOrderOfDate"/>
+    </select>
+
+    <!--查询本月到诊数-->
+    <select id="findVisitOfThisMonth" parameterType="string" resultType="integer">
+        <include refid="findVisitOfDate"/>
+    </select>
+</mapper>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.health.dao.MemberDao">
+    <!--根据电话号码查询会员数据-->
+    <select id="findByTelephone" parameterType="String" resultType="Member">
+        SELECT * FROM t_member WHERE phoneNumber=#{phoneNumber}
+
+    </select>
+
+    <!--添加会员-->
+    <insert id="add" parameterType="Member">
+        <selectKey resultType="java.lang.Integer" order="AFTER" keyProperty="id">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO t_member(fileNumber,name,sex,idCard,phoneNumber,regTime,password,email,birthday,remark)
+        VALUES
+        (#{fileNumber},#{name},#{sex},#{idCard},#{phoneNumber},#{regTime},#{password},#{email},#{birthday},#{remark})
+    </insert>
+
+    <!--查询当日新增会员数量-->
+    <select id="findMemberOfToday" parameterType="string" resultType="integer">
+        SELECT COUNT(1) FROM t_member WHERE regTime=#{regTime}
+    </select>
+
+    <!--查询所有会员数量-->
+    <select id="findAllMemberCount" resultType="integer">
+        SELECT COUNT(1) FROM t_member
+    </select>
+
+    <!--查询指定日期之后新增的会员数量-->
+    <sql id="findMemberAfterDate">
+         SELECT count(1) FROM t_member WHERE regTime>=#{regTime}
+    </sql>
+    <!--查询本周新增会员数量-->
+    <select id="findMemberOfThisWeek" parameterType="string" resultType="integer">
+        <include refid="findMemberAfterDate"/>
+    </select>
+
+    <!--查询本月新增会员数量-->
+    <select id="findMemberOfThisMonth" parameterType="string" resultType="integer">
+        <include refid="findMemberAfterDate"/>
+    </select>
+
+    <!--根据月份统计会员数量-->
+    <select id="findMemberCount" resultType="int" parameterType="string">
+        select count(*) from t_member WHERE regTime &lt;=#{value}
+    </select>
+
+    <!--查询会员性别比例-->
+    <select id="findMemberSexCount" resultType="map">
+        SELECT CASE WHEN sex = '1' THEN '男' ELSE '女' END AS name, COUNT(id) AS value FROM t_member  WHERE sex IS NOT NULL GROUP BY sex
+    </select>
+
+    <!--查询会员年龄比例-->
+    <select id="findMemberAge"   resultType="map">
+        SELECT '0-18岁' name,SUM(CASE WHEN age &lt;=18 THEN 1 ELSE 0 END) value FROM t_member
+        UNION
+        SELECT '18-30岁' name,SUM(CASE WHEN (age>=18 AND age &lt;30) THEN 1 ELSE 0 END) value FROM t_member
+        UNION
+        SELECT '30-45岁' name,SUM(CASE WHEN (age>=30 AND age &lt;45) THEN 1 ELSE 0 END) value FROM t_member
+        UNION
+        SELECT '45岁以上' name,SUM(CASE WHEN age>=45 THEN 1 ELSE 0 END) value FROM t_member
+    </select>
+</mapper>

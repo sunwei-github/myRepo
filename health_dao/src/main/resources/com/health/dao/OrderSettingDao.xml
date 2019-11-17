@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.health.dao.OrderSettingDao">
+    <select id="findCountByOrderDate" parameterType="date" resultType="integer">
+        SELECT count(1) FROM t_ordersetting WHERE orderDate=#{orderDate}
+    </select>
+
+    <update id="editNumberByOrderDate" parameterType="OrderSetting">
+        UPDATE t_ordersetting SET number=#{number} WHERE orderDate=#{orderDate}
+    </update>
+
+    <insert id="addOrderSetting" parameterType="OrderSetting">
+        INSERT INTO t_ordersetting VALUES (null, #{orderDate}, #{number}, #{reservations})
+    </insert>
+
+    <!--查询指定月的预约设置-->
+    <select id="findOrderSettingByMonth" parameterType="map" resultType="OrderSetting">
+        SELECT * FROM t_ordersetting WHERE orderDate BETWEEN #{beginDate} AND #{endDate}
+    </select>
+
+    <!--查询指定日期的已预约人数-->
+    <select id="findReservationsByOrderDate" parameterType="date" resultType="long">
+        SELECT reservations FROM  t_ordersetting WHERE orderDate=#{orderDate}
+    </select>
+
+    <!--查询指定日期的预约设置-->
+    <select id="findOrderSettingByOrderDate" parameterType="date" resultType="OrderSetting">
+        SELECT * FROM t_ordersetting WHERE orderDate=#{orderDate}
+    </select>
+
+    <!--修改指定日期的已预约人数-->
+    <update id="editReservationsByOrderDate" parameterType="OrderSetting">
+         UPDATE t_ordersetting SET reservations = #{reservations} WHERE orderDate = #{orderDate}
+    </update>
+</mapper>

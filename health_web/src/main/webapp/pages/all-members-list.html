@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>会员量统计</title>
+    <script src="../plugins/echarts/echarts.js"></script>
+    <script src="../js/axios-0.18.0.js"></script>
+    <script src="../js/vue.js"></script>
+    <script src="../js/jquery.min.js"></script>
+    <script src="../plugins/elementui/index.js"></script>
+</head>
+<body>
+<div id="app">
+    <div>
+        <span style="color: #5daf34">请输入起始日期和终止日期</span><br>
+        <form>
+            开始日期: <input v-model="startDate"  name="startDate" type="month">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            结束日期: <input v-model="endDate"  name="endDate" type="month">
+        </form>
+        <br>
+        <input type="button" @click="showMemberCount()" value="根据日期展示">
+    </div>
+</div>
+<!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+<div id="main" style="width: 600px;height:400px;"></div>
+
+<script type="text/javascript">
+    // 基于准备好的dom，初始化echarts实例
+    var myChart = echarts.init(document.getElementById('main'));
+    //发送ajax请求获取动态数据
+    axios.get("/report/getMemberReport.do").then(res => {
+
+        // 指定图表的配置项和数据
+        myChart.setOption({
+            title: {
+                text: '会员数量'
+            },
+            tooltip: {},
+            legend: {
+                data: ['会员数量']
+            },
+            xAxis: {
+                data: res.data.data.months
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series: [{
+                name: '数量',
+                type: 'line',
+                data: res.data.data.memberCount
+            }]
+        })
+    });
+</script>
+
+<script>
+    var vue = new Vue({
+        el: "#app",
+        data: {
+            startDate: null,
+            endDate: null
+        },
+        methods: {
+            //获取指定时间内的会员数量
+            showMemberCount() {
+                //发送ajax请求获取动态数据
+                axios.post("/report/getDynamicMemberCount.do",
+                    {startDate: this.startDate,
+                        endDate: this.endDate}).then(res => {
+
+                    // 指定图表的配置项和数据
+                    myChart.setOption({
+                        title: {
+                            text: '会员数量'
+                        },
+                        tooltip: {},
+                        legend: {
+                            data: ['会员数量']
+                        },
+                        xAxis: {
+                            data: res.data.data.months
+                        },
+                        yAxis: {
+                            type: 'value'
+                        },
+                        series: [{
+                            name: '数量',
+                            type: 'line',
+                            data: res.data.data.memberCount
+                        }]
+                    })
+                });
+            }
+        }
+    })
+</script>
+
+</body>
+</html>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.health.dao.CheckItemDao">
+    <insert id="add" parameterType="CheckItem">
+        INSERT INTO t_checkitem VALUES (null,#{code},#{name},#{sex},#{age},#{price},#{type},#{remark},#{attention})
+    </insert>
+
+    <select id="selectByCondition" parameterType="string" resultType="CheckItem">
+        SELECT * FROM t_checkitem
+        <if test="value != null and value.length > 0">
+            WHERE code = #{value} OR name = #{value}
+        </if>
+    </select>
+
+    <delete id="deleteCheckItemById" parameterType="int">
+        DELETE FROM t_checkitem WHERE id=#{id}
+    </delete>
+
+    <select id="findCheckItemById" parameterType="int" resultType="CheckItem">
+        SELECT * FROM t_checkitem WHERE id=#{id}
+    </select>
+
+    <update id="edit" parameterType="CheckItem">
+        update t_checkitem
+        <set>
+            <if test="code != null">
+                 code = #{code},
+            </if>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="sex != null">
+                sex = #{sex},
+            </if>
+            <if test="age != null">
+                age = #{age},
+            </if>
+            <if test="price != null">
+                price = #{price},
+            </if>
+            <if test="type != null">
+                type = #{type},
+            </if>
+            <if test="remark != null">
+                remark = #{remark},
+            </if>
+            <if test="attention != null">
+                attention = #{attention},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="findAll" resultType="CheckItem">
+        SELECT * FROM t_checkitem
+    </select>
+
+    <select id="findCountByCheckItemId" parameterType="integer" resultType="long">
+        SELECT COUNT(1) FROM t_checkgroup_checkitem WHERE checkitem_id=#{checkitem_id}
+    </select>
+
+    <!--根据检查组id查询检查项信息-->
+    <select id="findCheckItemByCheckGroupId" resultType="CheckItem">
+        select * from t_checkitem  where id
+        in (select checkitem_id from t_checkgroup_checkitem where checkgroup_id=#{id})
+    </select>
+</mapper>

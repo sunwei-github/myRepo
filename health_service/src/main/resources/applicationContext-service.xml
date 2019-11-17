@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   http://www.springframework.org/schema/beans/spring-beans.xsd
+	   http://code.alibabatech.com/schema/dubbo
+	   http://code.alibabatech.com/schema/dubbo/dubbo.xsd
+	   http://www.springframework.org/schema/tx
+	   http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!--配置应用名称-->
+    <dubbo:application name="health_service"/>
+
+    <!--配置注册中心地址-->
+    <dubbo:registry address="zookeeper://127.0.0.1:2181"/>
+
+    <!--配置注册协议和端口，默认为20880-->
+    <dubbo:protocol name="dubbo" port="20881"/>
+
+    <!--配置包扫描，所有有service注解的都将被注册为服务-->
+    <dubbo:annotation package="com.health.service"/>
+
+    <!--引入applicationContext-dao-->
+    <import resource="classpath:applicationContext-dao.xml"/>
+
+    <!--事务管理器-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!--事务注解驱动，使用cglib代理对象-->
+    <tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true"/>
+
+
+</beans>

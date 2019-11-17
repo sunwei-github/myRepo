@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:security="http://www.springframework.org/schema/security"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/security
+       http://www.springframework.org/schema/security/spring-security.xsd
+       http://www.springframework.org/schema/mvc
+       http://www.springframework.org/schema/mvc/spring-mvc.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!--注解控制-->
+    <!--开启注解驱动-->
+    <mvc:annotation-driven/>
+    <!--包扫描-->
+    <context:component-scan base-package="com.health.controller"/>
+    <!--开启注解方式权限驱动-->
+    <security:global-method-security pre-post-annotations="enabled"/>
+
+    <!--配置可匿名访问的资源-->
+    <security:http pattern="/pages/**" security="none"/>
+    <security:http pattern="/login.html" security="none"/>
+
+    <!--配置需要权限才能访问的资源
+        auto-config属性：true 自动配置
+        use-expression属性：false 不使用表达式-->
+    <security:http auto-config="true" use-expressions="false">
+        <!--配置拦截的路径
+            pattern属性：拦截路径的规则
+            access属性：需要什么角色才能访问-->
+        <security:intercept-url pattern="/**" access="ROLE_ADMIN"/>
+        <!--配置自定义登录页面
+            login-page: 登录页面;
+            username-parameter:指定用户名的name;
+            password-parameter:指定密码的name;
+            login-processing-url:指定登录的action;
+            authentication-failure-url:认证失败跳转的页面
+            authentication-success-forward-url:指定登录成功跳转的页面【默认是之前访问什么页面,登录成功后就跳转什么页面】
+        -->
+        <security:form-login login-page="/login.html"
+                             username-parameter="username"
+                             password-parameter="password"
+                             authentication-failure-url="/pages/failure.html"
+                             authentication-success-forward-url="/pages/success.html"
+                             login-processing-url="/login.do"/>
+
+        <!--关闭crsf过滤器-->
+        <security:csrf disabled="true"/>
+
+        <!--配置退出登录
+            logout-url:配置退出登录的路径;
+            logout-success-url:配置成功退出登录后,跳转的页面;
+            invalidate-session:退出登录时销毁session
+        -->
+        <security:logout logout-url="/loginOut.do" logout-success-url="/login.html" invalidate-session="true"/>
+        <!--403没有权限跳转页面 没有权限页面 -->
+        <security:access-denied-handler error-page="/nopermission.html"/>
+    </security:http>
+
+    <!--配置认证管理器-->
+    <!--<security:authentication-manager>
+        <security:authentication-provider>
+            <security:user-service>
+                &lt;!&ndash;配置账号密码，以及该账号的角色信息
+                    name属性：用户名
+                    password属性：密码({noop}不加密方式)&ndash;&gt;
+                <security:user name="admin" authorities="ROLE_ADMIN" password="{noop}123456"/>
+                <security:user name="root" authorities="ADMIN" password="{noop}root"/>
+            </security:user-service>
+        </security:authentication-provider>
+    </security:authentication-manager>-->
+
+    <!--配置认证管理器-->
+    <security:authentication-manager>
+        <security:authentication-provider user-service-ref="springSecurityUserService">
+            <!--指定加密方式-->
+            <security:password-encoder ref="bCryptPasswordEncoder"/>
+        </security:authentication-provider>
+    </security:authentication-manager>
+
+    <!--创建实例-->
+    <bean id="springSecurityUserService" class="com.health.security.SpringSecurityUserService"/>
+    <!--注册密码加密对象-->
+    <bean id="bCryptPasswordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
+
+
+</beans>
